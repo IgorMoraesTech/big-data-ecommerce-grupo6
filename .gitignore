@@ -13,3 +13,4 @@ data/input/*.jsonl
 *.err
 
 flink/target/
+data/history-*.jsonl
