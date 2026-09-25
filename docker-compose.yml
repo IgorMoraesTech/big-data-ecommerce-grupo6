@@ -161,11 +161,84 @@ services:
     networks:
       - bigdata-net
 
+  hbase:
+    image: bde2020/hbase-standalone:1.0.0-hbase1.2.6
+    container_name: hbase
+    hostname: hbase
+    restart: unless-stopped
+
+    depends_on:
+      - namenode
+      - datanode
+
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+
+      HBASE_CONF_hbase_rootdir: hdfs://namenode:9000/hbase
+      HBASE_CONF_hbase_cluster_distributed: "false"
+      HBASE_CONF_hbase_zookeeper_property_dataDir: /zookeeper-data
+      HBASE_CONF_hbase_zookeeper_quorum: hbase
+
+      HBASE_CONF_hbase_regionserver_hlog_tolerable_lowreplication: "1"
+
+      HBASE_CONF_hbase_master_port: "16000"
+      HBASE_CONF_hbase_master_info_port: "16010"
+      HBASE_CONF_hbase_regionserver_port: "16020"
+      HBASE_CONF_hbase_regionserver_info_port: "16030"
+
+      HBASE_CONF_hbase_zookeeper_peerport: "2888"
+      HBASE_CONF_hbase_zookeeper_leaderport: "3888"
+      HBASE_CONF_hbase_zookeeper_property_clientPort: "2181"
+
+    ports:
+      - "16010:16010"
+      - "16030:16030"
+      - "2181:2181"
+
+    volumes:
+      - hbase_data:/hbase-data
+      - hbase_zookeeper_data:/zookeeper-data
+
+    networks:
+      - bigdata-net
+
+  hbase-rest:
+    image: bde2020/hbase-standalone:1.0.0-hbase1.2.6
+    container_name: hbase-rest
+    hostname: hbase-rest
+    restart: unless-stopped
+
+    depends_on:
+      - hbase
+
+    command:
+      - hbase
+      - rest
+      - start
+      - -p
+      - "8080"
+
+    environment:
+      SERVICE_PRECONDITION: "hbase:2181"
+
+      HBASE_CONF_hbase_zookeeper_quorum: hbase
+      HBASE_CONF_hbase_zookeeper_property_clientPort: "2181"
+      HBASE_CONF_hbase_rootdir: hdfs://namenode:9000/hbase
+      HBASE_CONF_hbase_cluster_distributed: "false"
+
+    ports:
+      - "8082:8080"
+
+    networks:
+      - bigdata-net
+
 volumes:
   hadoop_namenode:
   hadoop_datanode:
   event_data:
   stream_data:
+  hbase_data:
+  hbase_zookeeper_data:
 
 networks:
   bigdata-net:
