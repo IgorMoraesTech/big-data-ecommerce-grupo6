@@ -1,16 +1,39 @@
+# Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# IDE / sistema operacional
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Arquivos locais de ambiente / segredos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Dados gerados localmente
 data/input/*.log
 data/input/*.jsonl
 !data/input/.gitkeep
+data/history-*.jsonl
+
+# Saidas e logs auxiliares
 *.out
 *.err
 
+# Build Maven / Flink
 flink/target/
-data/history-*.jsonl
+
+# Metastore Derby local, caso seja criado fora do Docker
+metastore_db/
+derby.log
