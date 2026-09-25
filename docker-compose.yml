@@ -77,7 +77,6 @@ services:
     depends_on:
       - namenode
       - datanode
-      - generator
 
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
@@ -88,6 +87,7 @@ services:
     volumes:
       - ./:/opt/project:ro
       - event_data:/data
+      - stream_data:/stream
 
     networks:
       - bigdata-net
@@ -96,6 +96,7 @@ volumes:
   hadoop_namenode:
   hadoop_datanode:
   event_data:
+  stream_data:
 
 networks:
   bigdata-net:
