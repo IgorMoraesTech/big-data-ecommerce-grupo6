@@ -42,6 +42,29 @@ services:
     networks:
       - bigdata-net
 
+  generator:
+    image: python:3.11-slim
+    container_name: generator
+    hostname: generator
+    restart: unless-stopped
+
+    working_dir: /app
+
+    command:
+      - python
+      - /app/generator/gerador.py
+      - --output
+      - /data/events.log
+      - --interval
+      - "1"
+
+    volumes:
+      - ./:/app:ro
+      - event_data:/data
+
+    networks:
+      - bigdata-net
+
   flume:
     build:
       context: .
@@ -54,6 +77,7 @@ services:
     depends_on:
       - namenode
       - datanode
+      - generator
 
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
@@ -62,7 +86,8 @@ services:
       - ./hadoop.env
 
     volumes:
-      - ./:/opt/project
+      - ./:/opt/project:ro
+      - event_data:/data
 
     networks:
       - bigdata-net
@@ -70,6 +95,7 @@ services:
 volumes:
   hadoop_namenode:
   hadoop_datanode:
+  event_data:
 
 networks:
   bigdata-net:
