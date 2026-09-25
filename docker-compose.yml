@@ -1,0 +1,51 @@
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    hostname: namenode
+    restart: unless-stopped
+
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+
+    environment:
+      CLUSTER_NAME: bigdata-ecommerce
+
+    env_file:
+      - ./hadoop.env
+
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+
+    networks:
+      - bigdata-net
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    hostname: datanode
+    restart: unless-stopped
+
+    depends_on:
+      - namenode
+
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+
+    env_file:
+      - ./hadoop.env
+
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+
+    networks:
+      - bigdata-net
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+
+networks:
+  bigdata-net:
+    driver: bridge
