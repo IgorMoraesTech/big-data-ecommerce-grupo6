@@ -136,6 +136,8 @@ Para executar o projeto é necessário:
 - Docker Compose
 - Git
 
+> **Observação:** na primeira execução, o Docker precisa de acesso à internet para baixar as imagens utilizadas pelo projeto.
+
 Não é necessário instalar Maven localmente. A compilação do job Flink pode ser realizada utilizando uma imagem Maven via Docker.
 
 ## Clonando o projeto
@@ -218,6 +220,12 @@ Suba os componentes do fluxo em tempo real:
 
 ```powershell
 docker compose up -d --build promoter flume hbase hbase-rest jobmanager taskmanager generator
+```
+
+Aguarde alguns segundos para que HBase e Flink concluam a inicialização:
+
+```powershell
+Start-Sleep -Seconds 25
 ```
 
 Verifique:
@@ -443,6 +451,8 @@ spark/etl_historico.py
 
 O processamento utiliza RDDs e Spark SQL.
 
+> **Observação:** a data `2026-09-24` é utilizada como exemplo reproduzível da validação do projeto. Para processar outra data, altere de forma consistente a data usada no gerador histórico, o caminho correspondente no HDFS e o argumento `--date` do job Spark.
+
 ## Gerando histórico de teste
 
 Para permitir uma demonstração reprodutível do processamento do dia anterior, existe o script:
@@ -554,6 +564,12 @@ Suba o Spark:
 
 ```powershell
 docker compose up -d spark-master spark-worker
+```
+
+Aguarde a inicialização do cluster Spark:
+
+```powershell
+Start-Sleep -Seconds 15
 ```
 
 Execute o ETL:
