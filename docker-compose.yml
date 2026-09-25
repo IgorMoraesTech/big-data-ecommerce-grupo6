@@ -65,6 +65,25 @@ services:
     networks:
       - bigdata-net
 
+  promoter:
+    image: python:3.11-slim
+    container_name: stream-promoter
+    hostname: stream-promoter
+    restart: unless-stopped
+
+    working_dir: /app
+
+    command:
+      - python
+      - /app/scripts/promote_stream_files.py
+
+    volumes:
+      - ./:/app:ro
+      - stream_data:/stream
+
+    networks:
+      - bigdata-net
+
   flume:
     build:
       context: .
@@ -77,6 +96,7 @@ services:
     depends_on:
       - namenode
       - datanode
+      - promoter
 
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
