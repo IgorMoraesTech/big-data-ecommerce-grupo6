@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+data/input/*.log
+data/input/*.jsonl
+!data/input/.gitkeep
+*.out
+*.err
