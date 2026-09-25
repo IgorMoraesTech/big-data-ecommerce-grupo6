@@ -11,3 +11,5 @@ data/input/*.jsonl
 !data/input/.gitkeep
 *.out
 *.err
+
+flink/target/
