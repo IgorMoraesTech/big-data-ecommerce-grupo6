@@ -251,6 +251,8 @@ services:
 
     volumes:
       - ./spark:/opt/project/spark:ro
+      - ./hive/hive-site.xml:/spark/conf/hive-site.xml:ro
+      - hive_metastore:/opt/hive-metastore
 
     networks:
       - bigdata-net
@@ -271,6 +273,7 @@ services:
 
     volumes:
       - ./spark:/opt/project/spark:ro
+      - ./hive/hive-site.xml:/spark/conf/hive-site.xml:ro
 
     networks:
       - bigdata-net
@@ -282,6 +285,7 @@ volumes:
   stream_data:
   hbase_data:
   hbase_zookeeper_data:
+  hive_metastore:
 
 networks:
   bigdata-net:

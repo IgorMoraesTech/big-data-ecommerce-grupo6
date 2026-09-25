@@ -83,6 +83,12 @@ def main():
         SparkSession.builder
         .appName("Ecommerce Historical ETL")
         .config("spark.sql.shuffle.partitions", "2")
+        .config(
+            "spark.sql.warehouse.dir",
+            "hdfs://namenode:9000/"
+            "bigdata/ecommerce/hive/warehouse"
+        )
+        .enableHiveSupport()
         .getOrCreate()
     )
 
@@ -188,16 +194,22 @@ def main():
             add_to_cart,
             purchases,
             units_sold,
-            ROUND(revenue, 2) AS revenue,
+            CAST(
+                ROUND(revenue, 2)
+                AS DOUBLE
+            ) AS revenue,
 
-            CASE
-                WHEN clicks > 0
-                THEN ROUND(
-                    purchases * 100.0 / clicks,
-                    2
-                )
-                ELSE 0.0
-            END AS conversion_rate_pct,
+            CAST(
+                CASE
+                    WHEN clicks > 0
+                    THEN ROUND(
+                        purchases * 100.0 / clicks,
+                        2
+                    )
+                    ELSE 0.0
+                END
+                AS DOUBLE
+            ) AS conversion_rate_pct,
 
             '{args.date}' AS reference_date
 
@@ -208,6 +220,9 @@ def main():
             product_id
         """
     )
+
+    print("[spark] schema do consolidado:")
+    result_df.printSchema()
 
     print("[spark] consolidado diario:")
 
@@ -233,6 +248,72 @@ def main():
 
     print(
         f"[spark] resultado gravado em: {output_path}"
+    )
+
+    # ---------------------------------------------------------
+    # Hive Data Warehouse
+    # ---------------------------------------------------------
+
+    spark.sql(
+        """
+        CREATE DATABASE IF NOT EXISTS ecommerce
+        LOCATION
+        'hdfs://namenode:9000/bigdata/ecommerce/hive/ecommerce.db'
+        """
+    )
+
+    spark.sql(
+        """
+        CREATE EXTERNAL TABLE IF NOT EXISTS
+        ecommerce.daily_product_metrics (
+            product_id STRING,
+            category STRING,
+            clicks BIGINT,
+            add_to_cart BIGINT,
+            purchases BIGINT,
+            units_sold BIGINT,
+            revenue DOUBLE,
+            conversion_rate_pct DOUBLE
+        )
+        PARTITIONED BY (
+            reference_date STRING
+        )
+        STORED AS PARQUET
+        LOCATION
+        'hdfs://namenode:9000/bigdata/ecommerce/curated/daily_product_metrics'
+        """
+    )
+
+    spark.sql(
+        """
+        MSCK REPAIR TABLE
+        ecommerce.daily_product_metrics
+        """
+    )
+
+    print(
+        "[spark] tabela Hive registrada: "
+        "ecommerce.daily_product_metrics"
+    )
+
+    print("[spark] consulta Hive:")
+
+    spark.sql(
+        f"""
+        SELECT
+            product_id,
+            category,
+            purchases,
+            revenue,
+            conversion_rate_pct,
+            reference_date
+        FROM ecommerce.daily_product_metrics
+        WHERE reference_date = '{args.date}'
+        ORDER BY revenue DESC
+        """
+    ).show(
+        50,
+        truncate=False
     )
 
     print(
