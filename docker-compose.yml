@@ -42,6 +42,31 @@ services:
     networks:
       - bigdata-net
 
+  flume:
+    build:
+      context: .
+      dockerfile: flume/Dockerfile
+
+    container_name: flume
+    hostname: flume
+    restart: unless-stopped
+
+    depends_on:
+      - namenode
+      - datanode
+
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+
+    env_file:
+      - ./hadoop.env
+
+    volumes:
+      - ./:/opt/project
+
+    networks:
+      - bigdata-net
+
 volumes:
   hadoop_namenode:
   hadoop_datanode:
