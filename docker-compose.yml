@@ -112,6 +112,55 @@ services:
     networks:
       - bigdata-net
 
+  jobmanager:
+    image: flink:1.17.2-scala_2.12-java11
+    container_name: flink-jobmanager
+    hostname: jobmanager
+    command: jobmanager
+    restart: unless-stopped
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        jobmanager.memory.process.size: 768m
+        parallelism.default: 1
+
+    volumes:
+      - stream_data:/stream:ro
+      - ./flink:/opt/project/flink:ro
+
+    networks:
+      - bigdata-net
+
+  taskmanager:
+    image: flink:1.17.2-scala_2.12-java11
+    container_name: flink-taskmanager
+    hostname: taskmanager
+    command: taskmanager
+    restart: unless-stopped
+
+    depends_on:
+      - jobmanager
+
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 1
+        taskmanager.memory.process.size: 1024m
+        parallelism.default: 1
+
+    volumes:
+      - stream_data:/stream:ro
+      - ./flink:/opt/project/flink:ro
+
+    networks:
+      - bigdata-net
+
 volumes:
   hadoop_namenode:
   hadoop_datanode:
